@@ -1,15 +1,20 @@
+/**
+ * @class Game
+ * 
+ * Singleton class
+ */
 class Game {
 
-    private static instance:Game
+    private static instance:Game;
 
     /**
      * The speed, in frames per second, the game runs at
      */
-    private fps:number = 30
+    private fps:number = 30;
 
-    private fpsInterval:number
+    private fpsInterval:number;
 
-    private then:number
+    private then:number;
 
     /**
      * Make the constructor private
@@ -17,7 +22,7 @@ class Game {
     private constructor() {
         this.fpsInterval = 1000 / this.fps;
         this.then = Date.now();
-        this.gameLoop()
+        this.gameLoop();
         let selector = Selector.getInstance();
         selector.show();
     }
@@ -35,18 +40,16 @@ class Game {
     }
     
     gameLoop() {
-        requestAnimationFrame(() => this.gameLoop())
+        requestAnimationFrame(() => this.gameLoop());
     
         // Calculate elepsed time
         let now = Date.now();
         let elapsed = now - this.then;
-    
+     
         // If enough time has elapsed, draw the next frame
         if (elapsed > this.fpsInterval) {
-            
 
-            console.log('Gameloop!');
-            
+
 
             // Get ready for next frame by setting then=now, but...
             // Also, adjust for fpsInterval not being multiple of 16.67
@@ -58,4 +61,4 @@ class Game {
 
 window.addEventListener("load", () => {
     Game.getInstance()
-})
+});
