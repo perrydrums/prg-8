@@ -7,14 +7,40 @@ body, html {
     box-sizing: border-box;
 }
 
-.selector {
+.Selector {
     margin: 200px auto; padding: 50px;
     width: 1000px; height: 500px;
     background-color: blue;
+    overflow: auto;
+}
+
+.StartScreen {
+    margin: 200px auto; padding: 50px;
+    width: 1000px; height: 500px;
+    background-color: greenyellow;
 }
 
 h1 {
     text-align: center;
     font-size: 24px;
     font-family: sans-serif;
+}
+
+.SelectTrackButton {
+    width: 80%; height: 75px;
+    margin-top: 10px;
+    background-color: aquamarine;
+    border: 2px solid white;
+    border-radius: 10px;
+    outline: none;
+}
+
+.SelectTrackButton:active {
+    transform: translateY(4px);
+}
+
+#TracksSelector {
+    width: 100%;
+    margin: 5px;
+    text-align: center;
 }

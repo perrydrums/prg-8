@@ -1,11 +1,17 @@
 /**
  * @class Selector
- * 
- * Singleton
+ *
+ * Handles the display and interactions of the Track Selection screen
+ *
+ * Singleton class
  */
 class Selector {
 
-    private static instance:Selector
+    private static instance: Selector;
+
+    private tracks:Track[] = [];
+
+    private selector:HTMLElement;
 
     /**
      * Make the constructor private
@@ -19,26 +25,33 @@ class Selector {
      */
     public static getInstance() {
         if (!this.instance) {
-           this.instance = new Selector()
+            this.instance = new Selector()
         }
         return this.instance
     }
 
     /**
-     * Creates a song selection screen
+     * Creates a track selection screen
      */
-    public show() {
+    public async show() {
         // Create a Div Element with the selector class
-        let selector = document.createElement('div')
-        selector.classList.add('selector')
+        this.selector = document.createElement('div');
+        this.selector.classList.add('Selector');
 
         // Insert HTML
-        let html = '<h1>Song Selection</h1>'
-        html += this.getTrackList()
-        selector.innerHTML = html
+        let html = '<h1>Song Selection</h1>';
+        html += await this.getTrackList();
+
+        this.selector.innerHTML = html;
 
         // Append selector to body
-        document.body.appendChild(selector)
+        document.body.appendChild(this.selector);
+
+        this.setListeners();
+    }
+
+    public hide() {
+        document.body.removeChild(this.selector);
     }
 
     /**
@@ -46,14 +59,32 @@ class Selector {
      * 
      * @returns string
      */
-    private getTrackList():string {
-        let tracks = ['Track 1', 'Track 2', 'Track 3']
-        let trackList = '<ul>';
-        tracks.forEach(element => {
-            trackList += '<li>' + element + '</li>'
+    private async getTrackList() {
+
+        /** @const Promise json */
+        const json = await Fetcher.fetchJSONFile('data/tracks.json');
+
+        this.tracks = Track.createTracks(json);
+        let html:string = `<div id="TracksSelector">`;
+
+        this.tracks.forEach(track => {
+            html += `<button class="SelectTrackButton" id="track_${track.id}">${track.name}</button>`;
         });
-        trackList += '</ul>'
-        return trackList;
+
+        html += `</div>`;
+        return html
+    }
+
+    /**
+     * Set an EventListener on each track button
+     */
+    private setListeners() {
+        this.tracks.forEach(track => {
+            let button = document.getElementById("track_" + track.id);
+            button.addEventListener("click", () => {
+                new Level(track);
+            }, false);
+        });
     }
 
 }
