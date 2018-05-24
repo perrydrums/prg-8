@@ -1,6 +1,6 @@
 class Creator {
 
-    private file:object;
+    private file:Sheet;
 
     private start:number;
 
@@ -16,11 +16,8 @@ class Creator {
 
         this.last_id = 0;
 
-        this.file = {
-            id: track.id,
-            name: track.name,
-            kicks: []
-        };
+        this.file = new Sheet(this.track.id, this.track.name);
+
         window.addEventListener("keydown", () => {this.setKeyPressEvents(event, this)}, false);
     }
 
@@ -40,7 +37,7 @@ class Creator {
                 this.addToFile(3);
                 break;
             case 13: // ENTER
-                this.saveFile(JSON.stringify(this.file), this.track.name + '.json', 'application/json');
+                this.saveFile(JSON.stringify(this.file.getJSON()), this.track.name + '.json', 'application/json');
                 break;
         }
         
