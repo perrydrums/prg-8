@@ -1,4 +1,14 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -34,6 +44,56 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var Creator = (function () {
+    function Creator(track) {
+        var _this = this;
+        this.addToFile = function (index) {
+            var time = Date.now() - _this.start;
+            _this.file.kicks.push({
+                id: _this.last_id,
+                time: time,
+                fret: index
+            });
+            _this.last_id++;
+        };
+        this.track = track;
+        this.start = Date.now();
+        this.last_id = 0;
+        this.file = {
+            id: track.id,
+            name: track.name,
+            kicks: []
+        };
+        window.addEventListener("keydown", function () { _this.setKeyPressEvents(event, _this); }, false);
+    }
+    Creator.prototype.setKeyPressEvents = function (e, self) {
+        switch (e.keyCode) {
+            case 90:
+                this.addToFile(0);
+                break;
+            case 67:
+                this.addToFile(1);
+                break;
+            case 66:
+                this.addToFile(2);
+                break;
+            case 77:
+                this.addToFile(3);
+                break;
+            case 13:
+                this.saveFile(JSON.stringify(this.file), this.track.name + '.json', 'application/json');
+                break;
+        }
+    };
+    Creator.prototype.saveFile = function (content, fileName, contentType) {
+        var a = document.createElement("a");
+        var file = new Blob([content], { type: contentType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    };
+    return Creator;
+}());
 var Game = (function () {
     function Game() {
         this.fps = 30;
@@ -55,27 +115,114 @@ var Game = (function () {
         var now = Date.now();
         var elapsed = now - this.then;
         if (elapsed > this.fpsInterval) {
+            if (Game.level) {
+                Game.level.update();
+            }
+            if (Game.kicks) {
+                Game.kicks.forEach(function (kick) {
+                    kick.update();
+                });
+            }
             this.then = now - (elapsed % this.fpsInterval);
         }
     };
+    Game.prototype.getFPS = function () {
+        return this.fps;
+    };
+    Game.kicks = [];
     return Game;
 }());
 window.addEventListener("load", function () {
     Game.getInstance();
 });
+var Note = (function () {
+    function Note() {
+    }
+    return Note;
+}());
+var Kick = (function (_super) {
+    __extends(Kick, _super);
+    function Kick(letter, fretID) {
+        var _this = _super.call(this) || this;
+        _this.y = 0;
+        _this.speed = 10;
+        _this._element = document.createElement('div');
+        _this.fretID = fretID;
+        var e = _this._element;
+        e.style.backgroundImage = "url('images/dot.png')";
+        e.classList.add('Kick');
+        _this.fret = document.getElementById('fret_' + _this.fretID);
+        _this.fret.appendChild(e);
+        return _this;
+    }
+    Kick.prototype.update = function () {
+        if (this.y < (this.fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
+            this.y += this.speed;
+            this.element.style.transform = "translate(0px, " + this.y + "px)";
+        }
+        else {
+            this.element.remove();
+            var index = Game.kicks.indexOf(this);
+            if (index !== -1) {
+                Game.kicks.splice(index, 1);
+            }
+        }
+    };
+    Object.defineProperty(Kick.prototype, "element", {
+        get: function () {
+            return this._element;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return Kick;
+}(Note));
 var Level = (function () {
-    function Level(track) {
-        this.track = track;
+    function Level(track, creator) {
+        if (creator === void 0) { creator = true; }
+        this._track = track;
         this.show();
+        if (creator) {
+            var c = new Creator(track);
+        }
     }
     Level.prototype.show = function () {
         var selector = Selector.getInstance();
         selector.hide();
-        this.startScreen = document.createElement('div');
-        this.startScreen.classList.add('StartScreen');
-        this.startScreen.innerHTML = this.track.name;
-        document.body.appendChild(this.startScreen);
+        this.level = document.createElement('div');
+        this.level.classList.add('Level');
+        this.level.innerHTML = this._track.name;
+        this.fretBoard = document.createElement('div');
+        this.fretBoard.id = 'FretBoard';
+        this.level.appendChild(this.fretBoard);
+        for (var i = 0; i < 4; i++) {
+            var fret = document.createElement('div');
+            fret.classList.add('Fret');
+            fret.id = 'fret_' + i;
+            this.fretBoard.appendChild(fret);
+        }
+        document.body.appendChild(this.level);
+        this.startScreen = DOMHelper.getStartScreen(this);
+        this.level.appendChild(this.startScreen);
     };
+    Level.prototype.start = function () {
+        this.startScreen.remove();
+        Game.level = this;
+        this.timer = 0;
+        console.log('START ' + this._track.name);
+    };
+    Level.prototype.update = function () {
+        var bpm = this.track.bpm;
+        var fps = Game.getInstance().getFPS();
+        var step = Math.round(fps / (bpm / 60));
+    };
+    Object.defineProperty(Level.prototype, "track", {
+        get: function () {
+            return this._track;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Level;
 }());
 var Selector = (function () {
@@ -212,6 +359,21 @@ var Track = (function () {
 var DOMHelper = (function () {
     function DOMHelper() {
     }
+    DOMHelper.getStartScreen = function (level) {
+        this.startScreen = document.createElement('div');
+        this.startScreen.classList.add('StartScreen');
+        var wrapper = document.createElement('div');
+        wrapper.id = 'TracksSelector';
+        this.startScreen.appendChild(wrapper);
+        this.startButton = document.createElement('button');
+        this.startButton.classList.add('SelectTrackButton');
+        this.startButton.innerText = 'Start';
+        this.startButton.addEventListener("click", function () {
+            level.start();
+        }, false);
+        wrapper.appendChild(this.startButton);
+        return this.startScreen;
+    };
     return DOMHelper;
 }());
 var Fetcher = (function () {

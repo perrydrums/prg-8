@@ -16,6 +16,10 @@ class Game {
 
     private then:number;
 
+    public static kicks:Kick[] = [];
+
+    public static level:Level;
+
     /**
      * Make the constructor private
      */
@@ -49,12 +53,24 @@ class Game {
         // If enough time has elapsed, draw the next frame
         if (elapsed > this.fpsInterval) {
 
+            if (Game.level) {
+                Game.level.update();
+            }
 
+            if (Game.kicks) {
+                Game.kicks.forEach(kick => {
+                    kick.update();
+                });
+            }
 
             // Get ready for next frame by setting then=now, but...
             // Also, adjust for fpsInterval not being multiple of 16.67
             this.then = now - (elapsed % this.fpsInterval);
         }
+    }
+
+    getFPS():number {
+        return this.fps;
     }
 
 }

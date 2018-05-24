@@ -14,10 +14,39 @@ body, html {
     overflow: auto;
 }
 
+.Level {
+    width: 100%; height: 100%;
+    background-color: bisque;
+}
+
+#FretBoard {
+    margin: 50px auto; padding: 0;
+    width: 500px; height: 800px;
+    background-color: red;
+}
+
+.Fret {
+    margin: 0; padding: 0;
+    width: 25%; height: 100%;
+    background-color: white;
+    float: left;
+}
+
 .StartScreen {
-    margin: 200px auto; padding: 50px;
+    left: 0; right: 0; top: 0; bottom: 0;
+    margin: auto;
+    padding: 50px;
     width: 1000px; height: 500px;
     background-color: greenyellow;
+    position: absolute;
+    z-index: 10;
+}
+
+.Kick {
+    width: 100px; height: 100px;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: absolute;
 }
 
 h1 {
