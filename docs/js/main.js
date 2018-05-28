@@ -59,11 +59,7 @@ var Creator = (function () {
         this.track = track;
         this.start = Date.now();
         this.last_id = 0;
-        this.file = {
-            id: track.id,
-            name: track.name,
-            kicks: []
-        };
+        this.file = new Sheet(this.track.id, this.track.name);
         window.addEventListener("keydown", function () { _this.setKeyPressEvents(event, _this); }, false);
     }
     Creator.prototype.setKeyPressEvents = function (e, self) {
@@ -81,7 +77,7 @@ var Creator = (function () {
                 this.addToFile(3);
                 break;
             case 13:
-                this.saveFile(JSON.stringify(this.file), this.track.name + '.json', 'application/json');
+                this.saveFile(JSON.stringify(this.file.getJSON()), this.track.name + '.json', 'application/json');
                 break;
         }
     };
@@ -209,12 +205,20 @@ var Level = (function () {
         this.startScreen.remove();
         Game.level = this;
         this.timer = 0;
+        document.getElementById("music1").play();
         console.log('START ' + this._track.name);
     };
     Level.prototype.update = function () {
         var bpm = this.track.bpm;
         var fps = Game.getInstance().getFPS();
         var step = Math.round(fps / (bpm / 60));
+        if (this.timer === step) {
+            Game.kicks.push(new Kick('a', Math.floor(Math.random() * 4)));
+            this.timer = 0;
+        }
+        else {
+            this.timer++;
+        }
     };
     Object.defineProperty(Level.prototype, "track", {
         get: function () {
@@ -287,6 +291,21 @@ var Selector = (function () {
         });
     };
     return Selector;
+}());
+var Sheet = (function () {
+    function Sheet(id, name) {
+        this.kicks = [];
+        this.id = id;
+        this.name = name;
+    }
+    Sheet.prototype.getJSON = function () {
+        return {
+            id: this.id,
+            name: this.name,
+            kicks: this.kicks
+        };
+    };
+    return Sheet;
 }());
 var Track = (function () {
     function Track(id, name, artist, description, duration, bpm, difficulty) {
