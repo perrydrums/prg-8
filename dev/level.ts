@@ -8,13 +8,17 @@ class Level {
 
     private startScreen:HTMLElement;
 
-    private timer:number;
+    private sheet:Sheet;
+
+    private startTime:number;
+
+    private creator:Creator;
 
     constructor(track:Track, creator:boolean = true) {
         this._track = track;
         this.show();
         if (creator) {
-            let c = new Creator(track);
+            this.creator = new Creator(track);
         }
     }
 
@@ -51,30 +55,37 @@ class Level {
     /**
      * Starts the level
      */
-    public start() {
+    public async start() {
         // Remove the startScreen
         this.startScreen.remove();
         Game.level = this;
-        this.timer = 0;
+
+        // Make the notes fall 2 seconds earlier so they reach the bottom at the right time.
+        this.startTime = Date.now() - 2000;
+
+        this.sheet = Sheet.createFromJSON(await Fetcher.fetchJSONFile("data/sheets/" + this.track.id + ".json"));
 
         document.getElementById("music1").play();
+        if (this.creator) {
+            this.creator.start = Date.now();
+        }
 
         console.log('START ' + this._track.name);
     }
 
     update() {
-        const bpm = this.track.bpm;
-        const fps = Game.getInstance().getFPS();
+        // Read the notes from the sheet and play them back at the right time.
+        const step = (60 / this.track.bpm) * 500;
 
-        let step = Math.round(fps / (bpm / 60));
-        
-        if (this.timer === step) {
-            Game.kicks.push(new Kick('a', Math.floor(Math.random() * 4)));
-            this.timer = 0;
+        if (this.sheet.kicks.length !== 0) {
+            if ((Date.now() - this.startTime) > (this.sheet.kicks[0].beat * step)) {
+            
+                Game.notes.push(new Note(this.sheet.kicks[0].fret));
+    
+                this.sheet.kicks.shift();
+            }
         }
-        else {
-            this.timer ++;
-        }
+
         
     }
 

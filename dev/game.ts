@@ -16,7 +16,7 @@ class Game {
 
     private then:number;
 
-    public static kicks:Kick[] = [];
+    public static notes:Note[] = [];
 
     public static level:Level;
 
@@ -57,9 +57,9 @@ class Game {
                 Game.level.update();
             }
 
-            if (Game.kicks) {
-                Game.kicks.forEach(kick => {
-                    kick.update();
+            if (Game.notes) {
+                Game.notes.forEach(note => {
+                    note.update();
                 });
             }
 

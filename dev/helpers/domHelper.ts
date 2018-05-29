@@ -40,4 +40,34 @@ class DOMHelper {
         return this.startScreen;
     }
 
+    /**
+     * Returns the keydown keycode for a given fretID
+     * 
+     * @param fretID
+     *
+     * @returns keycode:number
+     */
+    public static getKeyFromFretId(fretID:number):number {
+        switch (fretID) {
+            case 0: // z
+                return 90;
+            case 1: // c
+                return 67;
+            case 2: // b
+                return 66;
+            case 3: // m
+                return 77;
+            default:
+                break;
+        }
+    }
+
+    public static removeNote(note:Note):void {
+        note.element.remove();
+        let index = Game.notes.indexOf(note);
+        if (index !== -1) {
+            Game.notes.splice(index, 1);
+        }
+    }
+
 }
