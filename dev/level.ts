@@ -1,24 +1,26 @@
 class Level {
 
-    private level:HTMLElement;
+    private _level:HTMLElement;
 
-    private fretBoard:HTMLElement;
+    private _score:HTMLElement;
+
+    private _fretBoard:HTMLElement;
 
     private _track:Track;
 
-    private startScreen:HTMLElement;
+    private _startScreen:HTMLElement;
 
-    private sheet:Sheet;
+    private _sheet:Sheet;
 
-    private startTime:number;
+    private _startTime:number;
 
-    private creator:Creator;
+    private _creator:Creator;
 
     constructor(track:Track, creator:boolean = true) {
         this._track = track;
         this.show();
         if (creator) {
-            this.creator = new Creator(track);
+            this._creator = new Creator(track);
         }
     }
 
@@ -30,63 +32,79 @@ class Level {
         selector.hide();
 
         // Create a Div Element with the Level class
-        this.level = document.createElement('div');
-        this.level.classList.add('Level');
-        this.level.innerHTML = this._track.name;
+        this._level = document.createElement('div');
+        this._level.classList.add('Level');
+
+        // Create a Div Element with Score
+        this._score = document.createElement('div');
+        this._score.id = 'Score';
+        this._score.innerText = 'Score: ' + Game.getInstance().score;
 
         // Create a Div Element with the FretBoard class
-        this.fretBoard = document.createElement('div');
-        this.fretBoard.id = 'FretBoard';
-        this.level.appendChild(this.fretBoard);
+        this._fretBoard = document.createElement('div');
+        this._fretBoard.id = 'FretBoard';
+        this._fretBoard.appendChild(this._score);
+        this._level.appendChild(this._fretBoard);
 
         // Create 4 frets for in the fretboard
         for (let i = 0; i < 4; i ++) {
             let fret = document.createElement('div');
             fret.classList.add('Fret');
             fret.id = 'fret_' + i;
-            this.fretBoard.appendChild(fret);
+            this._fretBoard.appendChild(fret);
         }
 
-        document.body.appendChild(this.level);
-        this.startScreen = DOMHelper.getStartScreen(this);
-        this.level.appendChild(this.startScreen);
+        document.body.appendChild(this._level);
+        this._startScreen = DOMHelper.getStartScreen(this);
+        this._level.appendChild(this._startScreen);
     }
 
     /**
      * Starts the level
      */
     public async start() {
-        // Remove the startScreen
-        this.startScreen.remove();
+        // Remove the startScreen.
+        this._startScreen.remove();
         Game.level = this;
 
-        // Make the notes fall 2 seconds earlier so they reach the bottom at the right time.
-        this.startTime = Date.now() - 2000;
+        // Make the notes fall +/- 2 seconds earlier so they reach the bottom at the right time.
+        this._startTime = Date.now() - 1800;
 
-        this.sheet = Sheet.createFromJSON(await Fetcher.fetchJSONFile("data/sheets/" + this.track.id + ".json"));
+        this._sheet = Sheet.createFromJSON(await Fetcher.fetchJSONFile("data/sheets/" + this.track.id + ".json"));
 
-        document.getElementById("music1").play();
-        if (this.creator) {
-            this.creator.start = Date.now();
+        // Start the music.
+        let audio = DOMHelper.createAudioElement('track_' + this._track.id, 'sound/tracks/' + this._track.id + '.mp3');
+        document.body.appendChild(audio);
+        audio.play();
+        
+        if (this._creator) {
+            this._creator.start = Date.now();
         }
 
         console.log('START ' + this._track.name);
     }
 
+    /**
+     * Runs every game tick.
+     */
     update() {
         // Read the notes from the sheet and play them back at the right time.
         const step = (60 / this.track.bpm) * 500;
 
-        if (this.sheet.kicks.length !== 0) {
-            if ((Date.now() - this.startTime) > (this.sheet.kicks[0].beat * step)) {
+        if (this._sheet.notes.length !== 0) {
+            if ((Date.now() - this._startTime) > (this._sheet.notes[0].beat * step)) {
             
-                Game.notes.push(new Note(this.sheet.kicks[0].fret));
+                Game.notes.push(new Note(this._sheet.notes[0].fret));
     
-                this.sheet.kicks.shift();
+                this._sheet.notes.shift();
             }
         }
 
-        
+        this.updateScore();
+    }
+
+    private updateScore():void {
+        this._score.innerText = 'Score: ' + Game.getInstance().score;
     }
 
     public get track():Track {

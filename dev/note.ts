@@ -3,20 +3,22 @@ class Note {
     /**
      * Specifies how the note should be played
      */
-    private noteBehaviour : NoteBehaviour;
+    private _noteBehaviour : NoteBehaviour;
 
     private _element:HTMLElement;
 
     private _fretID:number;
-    private fret:HTMLElement;
+
+    private _fret:HTMLElement;
 
     private _y:number = 0;
 
-    private speed:number = 10;
+    private _speed:number = 10;
+
+    private _stop:boolean = false;
 
     constructor(fretID:number) {
-
-        this.noteBehaviour = new NoteHitBehaviour(this);
+        this._noteBehaviour = new NoteHitBehaviour(this);
 
         this._element = document.createElement('div');
         this._fretID = fretID;
@@ -24,8 +26,8 @@ class Note {
 
         e.style.backgroundImage = "url('images/dot.png')";
         e.classList.add('Kick');
-        this.fret = document.getElementById('fret_' + this._fretID);
-        this.fret.appendChild(e);
+        this._fret = document.getElementById('fret_' + this._fretID);
+        this._fret.appendChild(e);
     }
 
     /**
@@ -33,13 +35,13 @@ class Note {
      */
     update():void {
         // Move the note down
-        if (this._y < (this.fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
-            this._y += this.speed;
+        if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
+            this._y += this._speed;
             this.element.style.transform = `translate(0px, ${this._y}px)` 
         }
         // Remove the note if it's outside of the fret bounds
         else {
-            //TODO: LOWER SCORE
+            Game.getInstance().lowerScore(1);
 
             // Remove the DOMElement and the reference to this instance
             DOMHelper.removeNote(this);
@@ -48,8 +50,20 @@ class Note {
         this.checkPosition();
     }
 
+    /**
+     * Check if the note can be played right now.
+     */
     checkPosition():void {
-        this.noteBehaviour.checkPosition();
+        this._noteBehaviour.checkPosition();
+    }
+
+    /**
+     * Stops the note from moving.
+     * Also hits cannot be registered after calling this function.
+     */
+    stopNote():void {
+        this._speed = 0;
+        this._stop = true;
     }
 
     get element():HTMLElement {
@@ -64,8 +78,8 @@ class Note {
         return this._fretID;
     }
 
-    public stop() {
-        this.speed = 0;
+    get stop():boolean {
+        return this._stop;
     }
 
 }

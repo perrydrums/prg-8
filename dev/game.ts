@@ -5,53 +5,58 @@
  */
 class Game {
 
-    private static instance:Game;
+    private static _instance:Game;
 
     /**
-     * The speed, in frames per second, the game runs at
+     * The speed, in frames per second, the game runs at.
      */
-    private fps:number = 30;
+    private _fps:number = 30;
 
-    private fpsInterval:number;
+    private _fpsInterval:number;
 
-    private then:number;
+    private _then:number;
+
+    private _score:number = 0;
 
     public static notes:Note[] = [];
 
     public static level:Level;
 
     /**
-     * Make the constructor private
+     * Make the constructor private.
      */
     private constructor() {
-        this.fpsInterval = 1000 / this.fps;
-        this.then = Date.now();
+        this._fpsInterval = 1000 / this._fps;
+        this._then = Date.now();
         this.gameLoop();
         let selector = Selector.getInstance();
         selector.show();
     }
 
     /**
-     * There can only be one Game
+     * There can always only be one Game instance.
      * 
      * @returns Game
      */
     public static getInstance() {
-        if (!this.instance) {
-           this.instance = new Game()
+        if (!this._instance) {
+           this._instance = new Game();
         }
-        return this.instance
+        return this._instance;
     }
     
+    /**
+     * Runs approx. {this._fps} times a second.
+     */
     gameLoop() {
         requestAnimationFrame(() => this.gameLoop());
     
         // Calculate elepsed time
         let now = Date.now();
-        let elapsed = now - this.then;
+        let elapsed = now - this._then;
      
         // If enough time has elapsed, draw the next frame
-        if (elapsed > this.fpsInterval) {
+        if (elapsed > this._fpsInterval) {
 
             if (Game.level) {
                 Game.level.update();
@@ -65,12 +70,24 @@ class Game {
 
             // Get ready for next frame by setting then=now, but...
             // Also, adjust for fpsInterval not being multiple of 16.67
-            this.then = now - (elapsed % this.fpsInterval);
+            this._then = now - (elapsed % this._fpsInterval);
         }
     }
 
-    getFPS():number {
-        return this.fps;
+    increaseScore(score:number):void {
+        this._score += score;
+    }
+
+    lowerScore(score:number):void {
+        this._score -= score;
+    }
+
+    get score():number {
+        return this._score;
+    }
+
+    get fps():number {
+        return this._fps;
     }
 
 }

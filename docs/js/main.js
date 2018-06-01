@@ -39,17 +39,18 @@ var Creator = (function () {
         var _this = this;
         this.addToFile = function (index) {
             var time = Date.now() - _this.start;
-            console.log("BEAT", _this.getBeat(time));
-            _this.sheet.kicks.push({
-                id: _this.last_id,
-                beat: _this.getBeat(time),
+            var beat = _this.getBeat(time);
+            console.log("BEAT", beat);
+            _this._sheet.notes.push({
+                id: _this._last_id,
+                beat: beat,
                 fret: index
             });
-            _this.last_id++;
+            _this._last_id++;
         };
-        this.track = track;
-        this.last_id = 0;
-        this.sheet = new Sheet(this.track.id, this.track.name);
+        this._track = track;
+        this._last_id = 0;
+        this._sheet = new Sheet(this._track.id, this._track.name);
         window.addEventListener("keydown", function () { _this.checkKeyPressEvents(event); }, false);
     }
     Creator.prototype.checkKeyPressEvents = function (e) {
@@ -68,45 +69,39 @@ var Creator = (function () {
                     this.addToFile(3);
                     break;
                 case 13:
-                    this.saveFile(JSON.stringify(this.sheet.getJSON()), this.track.name + '.json', 'application/json');
+                    DOMHelper.downloadFile(JSON.stringify(this._sheet.getJSON()), this._track.name + '.json', 'application/json');
                     break;
             }
         }
     };
     Creator.prototype.getBeat = function (time) {
-        var step = (60 / this.track.bpm) * 500;
+        var step = (60 / this._track.bpm) * 500;
         return Math.floor(time / step);
-    };
-    Creator.prototype.saveFile = function (content, fileName, contentType) {
-        var a = document.createElement("a");
-        var file = new Blob([content], { type: contentType });
-        a.href = URL.createObjectURL(file);
-        a.download = fileName;
-        a.click();
     };
     return Creator;
 }());
 var Game = (function () {
     function Game() {
-        this.fps = 30;
-        this.fpsInterval = 1000 / this.fps;
-        this.then = Date.now();
+        this._fps = 30;
+        this._score = 0;
+        this._fpsInterval = 1000 / this._fps;
+        this._then = Date.now();
         this.gameLoop();
         var selector = Selector.getInstance();
         selector.show();
     }
     Game.getInstance = function () {
-        if (!this.instance) {
-            this.instance = new Game();
+        if (!this._instance) {
+            this._instance = new Game();
         }
-        return this.instance;
+        return this._instance;
     };
     Game.prototype.gameLoop = function () {
         var _this = this;
         requestAnimationFrame(function () { return _this.gameLoop(); });
         var now = Date.now();
-        var elapsed = now - this.then;
-        if (elapsed > this.fpsInterval) {
+        var elapsed = now - this._then;
+        if (elapsed > this._fpsInterval) {
             if (Game.level) {
                 Game.level.update();
             }
@@ -115,12 +110,29 @@ var Game = (function () {
                     note.update();
                 });
             }
-            this.then = now - (elapsed % this.fpsInterval);
+            this._then = now - (elapsed % this._fpsInterval);
         }
     };
-    Game.prototype.getFPS = function () {
-        return this.fps;
+    Game.prototype.increaseScore = function (score) {
+        this._score += score;
     };
+    Game.prototype.lowerScore = function (score) {
+        this._score -= score;
+    };
+    Object.defineProperty(Game.prototype, "score", {
+        get: function () {
+            return this._score;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Game.prototype, "fps", {
+        get: function () {
+            return this._fps;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Game.notes = [];
     return Game;
 }());
@@ -133,47 +145,50 @@ var Level = (function () {
         this._track = track;
         this.show();
         if (creator) {
-            this.creator = new Creator(track);
+            this._creator = new Creator(track);
         }
     }
     Level.prototype.show = function () {
         var selector = Selector.getInstance();
         selector.hide();
-        this.level = document.createElement('div');
-        this.level.classList.add('Level');
-        this.level.innerHTML = this._track.name;
-        this.fretBoard = document.createElement('div');
-        this.fretBoard.id = 'FretBoard';
-        this.level.appendChild(this.fretBoard);
+        this._level = document.createElement('div');
+        this._level.classList.add('Level');
+        this._score = document.createElement('div');
+        this._score.id = 'Score';
+        this._score.innerText = 'Score: ' + Game.getInstance().score;
+        this._fretBoard = document.createElement('div');
+        this._fretBoard.id = 'FretBoard';
+        this._fretBoard.appendChild(this._score);
+        this._level.appendChild(this._fretBoard);
         for (var i = 0; i < 4; i++) {
             var fret = document.createElement('div');
             fret.classList.add('Fret');
             fret.id = 'fret_' + i;
-            this.fretBoard.appendChild(fret);
+            this._fretBoard.appendChild(fret);
         }
-        document.body.appendChild(this.level);
-        this.startScreen = DOMHelper.getStartScreen(this);
-        this.level.appendChild(this.startScreen);
+        document.body.appendChild(this._level);
+        this._startScreen = DOMHelper.getStartScreen(this);
+        this._level.appendChild(this._startScreen);
     };
     Level.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _c;
+            var _a, _b, _c, audio;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
-                        this.startScreen.remove();
+                        this._startScreen.remove();
                         Game.level = this;
-                        this.timer = 0;
-                        this.startTime = Date.now() - 2000;
+                        this._startTime = Date.now() - 1800;
                         _a = this;
                         _c = (_b = Sheet).createFromJSON;
                         return [4, Fetcher.fetchJSONFile("data/sheets/" + this.track.id + ".json")];
                     case 1:
-                        _a.sheet = _c.apply(_b, [_d.sent()]);
-                        this.nextNote = this.sheet.kicks[0];
-                        document.getElementById("music1").play();
-                        if (this.creator) {
-                            this.creator.start = Date.now();
+                        _a._sheet = _c.apply(_b, [_d.sent()]);
+                        audio = DOMHelper.createAudioElement('track_' + this._track.id, 'sound/tracks/' + this._track.id + '.mp3');
+                        document.body.appendChild(audio);
+                        audio.play();
+                        if (this._creator) {
+                            this._creator.start = Date.now();
                         }
                         console.log('START ' + this._track.name);
                         return [2];
@@ -183,13 +198,16 @@ var Level = (function () {
     };
     Level.prototype.update = function () {
         var step = (60 / this.track.bpm) * 500;
-        if (this.sheet.kicks.length !== 0) {
-            if ((Date.now() - this.startTime) > (this.sheet.kicks[0].beat * step)) {
-                Game.notes.push(new Note(this.sheet.kicks[0].fret));
-                this.sheet.kicks.shift();
-                this.nextNote = this.sheet.kicks[0];
+        if (this._sheet.notes.length !== 0) {
+            if ((Date.now() - this._startTime) > (this._sheet.notes[0].beat * step)) {
+                Game.notes.push(new Note(this._sheet.notes[0].fret));
+                this._sheet.notes.shift();
             }
         }
+        this.updateScore();
+    };
+    Level.prototype.updateScore = function () {
+        this._score.innerText = 'Score: ' + Game.getInstance().score;
     };
     Object.defineProperty(Level.prototype, "track", {
         get: function () {
@@ -203,28 +221,34 @@ var Level = (function () {
 var Note = (function () {
     function Note(fretID) {
         this._y = 0;
-        this.speed = 10;
-        this.noteBehaviour = new NoteHitBehaviour(this);
+        this._speed = 10;
+        this._stop = false;
+        this._noteBehaviour = new NoteHitBehaviour(this);
         this._element = document.createElement('div');
         this._fretID = fretID;
         var e = this._element;
         e.style.backgroundImage = "url('images/dot.png')";
         e.classList.add('Kick');
-        this.fret = document.getElementById('fret_' + this._fretID);
-        this.fret.appendChild(e);
+        this._fret = document.getElementById('fret_' + this._fretID);
+        this._fret.appendChild(e);
     }
     Note.prototype.update = function () {
-        if (this._y < (this.fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
-            this._y += this.speed;
+        if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
+            this._y += this._speed;
             this.element.style.transform = "translate(0px, " + this._y + "px)";
         }
         else {
+            Game.getInstance().lowerScore(1);
             DOMHelper.removeNote(this);
         }
         this.checkPosition();
     };
     Note.prototype.checkPosition = function () {
-        this.noteBehaviour.checkPosition();
+        this._noteBehaviour.checkPosition();
+    };
+    Note.prototype.stopNote = function () {
+        this._speed = 0;
+        this._stop = true;
     };
     Object.defineProperty(Note.prototype, "element", {
         get: function () {
@@ -247,14 +271,18 @@ var Note = (function () {
         enumerable: true,
         configurable: true
     });
-    Note.prototype.stop = function () {
-        this.speed = 0;
-    };
+    Object.defineProperty(Note.prototype, "stop", {
+        get: function () {
+            return this._stop;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Note;
 }());
 var Selector = (function () {
     function Selector() {
-        this.tracks = [];
+        this._tracks = [];
     }
     Selector.getInstance = function () {
         if (!this.instance) {
@@ -268,15 +296,15 @@ var Selector = (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        this.selector = document.createElement('div');
-                        this.selector.classList.add('Selector');
+                        this._selector = document.createElement('div');
+                        this._selector.classList.add('Selector');
                         html = '<h1>Song Selection</h1>';
                         _a = html;
                         return [4, this.getTrackList()];
                     case 1:
                         html = _a + _b.sent();
-                        this.selector.innerHTML = html;
-                        document.body.appendChild(this.selector);
+                        this._selector.innerHTML = html;
+                        document.body.appendChild(this._selector);
                         this.setListeners();
                         return [2];
                 }
@@ -284,7 +312,7 @@ var Selector = (function () {
         });
     };
     Selector.prototype.hide = function () {
-        document.body.removeChild(this.selector);
+        document.body.removeChild(this._selector);
     };
     Selector.prototype.getTrackList = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -294,9 +322,9 @@ var Selector = (function () {
                     case 0: return [4, Fetcher.fetchJSONFile('data/tracks.json')];
                     case 1:
                         json = _a.sent();
-                        this.tracks = Track.createTracks(json);
+                        this._tracks = Track.createTracks(json);
                         html = "<div id=\"TracksSelector\">";
-                        this.tracks.forEach(function (track) {
+                        this._tracks.forEach(function (track) {
                             html += "<button class=\"SelectTrackButton\" id=\"track_" + track.id + "\">" + track.name + "</button>";
                         });
                         html += "</div>";
@@ -306,7 +334,7 @@ var Selector = (function () {
         });
     };
     Selector.prototype.setListeners = function () {
-        this.tracks.forEach(function (track) {
+        this._tracks.forEach(function (track) {
             var button = document.getElementById("track_" + track.id);
             button.addEventListener("click", function () {
                 new Level(track);
@@ -317,22 +345,43 @@ var Selector = (function () {
 }());
 var Sheet = (function () {
     function Sheet(id, name) {
-        this.kicks = [];
-        this.id = id;
-        this.name = name;
+        this._notes = [];
+        this._id = id;
+        this._name = name;
     }
     Sheet.prototype.getJSON = function () {
         return {
-            id: this.id,
-            name: this.name,
-            kicks: this.kicks
+            id: this._id,
+            name: this._name,
+            notes: this._notes
         };
     };
     Sheet.createFromJSON = function (json) {
         var s = new Sheet(json.id, json.name);
-        s.kicks = json.kicks;
+        s._notes = json.notes;
         return s;
     };
+    Object.defineProperty(Sheet.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Sheet.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Sheet.prototype, "notes", {
+        get: function () {
+            return this._notes;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Sheet;
 }());
 var Track = (function () {
@@ -406,41 +455,40 @@ var Track = (function () {
 var NoteHitBehaviour = (function () {
     function NoteHitBehaviour(note) {
         var _this = this;
-        this._now = false;
+        this.now = false;
         this._hits = 0;
-        this._note = note;
-        window.addEventListener("keydown", function () { _this.checkHit(event, DOMHelper.getKeyFromFretId(_this._note.fretID)); }, false);
+        this.note = note;
+        window.addEventListener("keydown", function () { _this.checkHit(event, DOMHelper.getKeyFromFretId(_this.note.fretID)); }, false);
     }
     NoteHitBehaviour.prototype.checkPosition = function () {
-        var y = this._note.y;
+        var y = this.note.y;
         if (y > 600 && y < 900) {
-            this._now = true;
+            this.now = true;
         }
         else {
-            this._now = false;
+            this.now = false;
         }
     };
     NoteHitBehaviour.prototype.checkHit = function (e, keycode) {
         if (e instanceof KeyboardEvent) {
-            if (this._now && e.keyCode === keycode) {
+            if (this.now && e.keyCode === keycode) {
                 this.register();
-                this._now = false;
+                this.now = false;
             }
         }
     };
     NoteHitBehaviour.prototype.register = function () {
         var _this = this;
+        if (this.note.stop) {
+            return;
+        }
         this._hits++;
-        var flare = document.createElement("img");
-        flare.setAttribute("src", "images/flare.png");
-        flare.setAttribute("height", "100px");
-        flare.setAttribute("width", "100px");
-        this._note.element.appendChild(flare);
-        this._note.stop();
-        console.log('HIT!');
+        this.note.element.style.backgroundImage = 'url(images/dot.png), url("images/small_explosion.gif")';
+        this.note.stopNote();
         setTimeout(function () {
-            DOMHelper.removeNote(_this._note);
+            DOMHelper.removeNote(_this.note);
         }, 200);
+        Game.getInstance().increaseScore(1);
     };
     return NoteHitBehaviour;
 }());
@@ -448,19 +496,19 @@ var DOMHelper = (function () {
     function DOMHelper() {
     }
     DOMHelper.getStartScreen = function (level) {
-        this.startScreen = document.createElement('div');
-        this.startScreen.classList.add('StartScreen');
+        this._startScreen = document.createElement('div');
+        this._startScreen.classList.add('StartScreen');
         var wrapper = document.createElement('div');
         wrapper.id = 'TracksSelector';
-        this.startScreen.appendChild(wrapper);
-        this.startButton = document.createElement('button');
-        this.startButton.classList.add('SelectTrackButton');
-        this.startButton.innerText = 'Start';
-        this.startButton.addEventListener("click", function () {
+        this._startScreen.appendChild(wrapper);
+        this._startButton = document.createElement('button');
+        this._startButton.classList.add('SelectTrackButton');
+        this._startButton.innerText = 'Start';
+        this._startButton.addEventListener("click", function () {
             level.start();
         }, false);
-        wrapper.appendChild(this.startButton);
-        return this.startScreen;
+        wrapper.appendChild(this._startButton);
+        return this._startScreen;
     };
     DOMHelper.getKeyFromFretId = function (fretID) {
         switch (fretID) {
@@ -482,6 +530,19 @@ var DOMHelper = (function () {
         if (index !== -1) {
             Game.notes.splice(index, 1);
         }
+    };
+    DOMHelper.downloadFile = function (content, fileName, contentType) {
+        var a = document.createElement("a");
+        var file = new Blob([content], { type: contentType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    };
+    DOMHelper.createAudioElement = function (id, source) {
+        var audio = document.createElement('audio');
+        audio.id = id;
+        audio.src = source;
+        return audio;
     };
     return DOMHelper;
 }());
