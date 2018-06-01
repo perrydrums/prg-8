@@ -9,65 +9,68 @@ class Selector {
 
     private static instance: Selector;
 
-    private tracks:Track[] = [];
+    private _tracks:Track[] = [];
 
-    private selector:HTMLElement;
+    private _selector:HTMLElement;
 
     /**
-     * Make the constructor private
+     * Make the constructor private.
      */
     private constructor() {}
 
     /**
-     * There can only be one Selector
+     * There can only be one Selector.
      * 
-     * @returns Selector
+     * @returns {Selector}}
      */
     public static getInstance() {
         if (!this.instance) {
-            this.instance = new Selector()
+            this.instance = new Selector();
         }
-        return this.instance
+        return this.instance;
     }
 
     /**
-     * Creates a track selection screen
+     * Creates a track selection screen.
      */
     public async show() {
         // Create a Div Element with the selector class
-        this.selector = document.createElement('div');
-        this.selector.classList.add('Selector');
+        this._selector = document.createElement('div');
+        this._selector.classList.add('Selector');
 
         // Insert HTML
         let html = '<h1>Song Selection</h1>';
         html += await this.getTrackList();
 
-        this.selector.innerHTML = html;
+        this._selector.innerHTML = html;
 
         // Append selector to body
-        document.body.appendChild(this.selector);
+        document.body.appendChild(this._selector);
 
         this.setListeners();
     }
 
-    public hide() {
-        document.body.removeChild(this.selector);
+    /**
+     * Remove the DOMElement.
+     */
+    public hide():void {
+        document.body.removeChild(this._selector);
     }
 
     /**
-     * Creates the HTML for the list of all available tracks
+     * Creates the HTML for the list of all available tracks.
      * 
-     * @returns string
+     * @returns {string}
      */
     private async getTrackList() {
 
         /** @const Promise json */
         const json = await Fetcher.fetchJSONFile('data/tracks.json');
 
-        this.tracks = Track.createTracks(json);
+        this._tracks = Track.createTracks(json);
         let html:string = `<div id="TracksSelector">`;
 
-        this.tracks.forEach(track => {
+        this._tracks.forEach(track => {
             html += `<button class="SelectTrackButton" id="track_${track.id}">${track.name}</button>`;
         });
 
@@ -79,7 +82,7 @@ class Selector {
      * Set an EventListener on each track button
      */
     private setListeners() {
-        this.tracks.forEach(track => {
+        this._tracks.forEach(track => {
             let button = document.getElementById("track_" + track.id);
             button.addEventListener("click", () => {
                 new Level(track);

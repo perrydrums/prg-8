@@ -1,56 +1,70 @@
 class NoteHitBehaviour implements NoteBehaviour {
 
-    _note:Note;
-    _now:boolean = false;
-    _hits:number = 0;
+    public note:Note;
+    public now:boolean = false;
+
+    private _hits:number = 0;
 
     constructor(note:Note) {
-        this._note = note;
-        window.addEventListener("keydown", () => {this.checkHit(event, DOMHelper.getKeyFromFretId(this._note.fretID))}, false);
+        this.note = note;
+        window.addEventListener("keydown", () => {this.checkHit(event, DOMHelper.getKeyFromFretId(this.note.fretID))}, false);
     }
 
+    /**
+     * Check if the note can be played right now.
+     */
     checkPosition():void {
-        const y = this._note.y;
+        const y = this.note.y;
         
         if (y > 600 && y < 900) {
-            this._now = true;
+            this.now = true;
         }
         else {
-            this._now = false;
+            this.now = false;
         }
 
     }
 
+    /**
+     * Check if the player has hit the right key at the right time.
+     * 
+     * @param e 
+     * @param keycode 
+     */
     checkHit(e:Event, keycode:number):void {
         if (e instanceof KeyboardEvent) {
             // If the note is playable now and the right key has been pressed.
-            if (this._now && e.keyCode === keycode) {
+            if (this.now && e.keyCode === keycode) {
                 this.register();
-                this._now = false;
+                this.now = false;
             }
         }
     }
 
+    /**
+     * Register a successful hit.
+     */
     register():void {
+        
+        if (this.note.stop) {
+            return;
+        }
+
         this._hits ++;
 
-        // Add lens flare image to note if hit
-        let flare = document.createElement("img");
-        flare.setAttribute("src", "images/flare.png");
-        flare.setAttribute("height", "100px");
-        flare.setAttribute("width", "100px");
+        // Add the small_explosion gif to the background of the note element to indicate a successful hit.
+        this.note.element.style.backgroundImage = 'url(images/dot.png), url("images/small_explosion.gif")'
 
-        this._note.element.appendChild(flare);
+        this.note.stopNote();
 
-        this._note.stop();
-
-        console.log('HIT!');
-
+        // Remove the note after 200 ms, so the flare image will be visible for a split second.
         setTimeout(() => {
-            DOMHelper.removeNote(this._note);
+            DOMHelper.removeNote(this.note);
         }, 200);
-        
-        // TODO: Increase and keep track of score.
+
+        // Increase the score by one.
+        // TODO: Combo's and streak multiplyers
+        Game.getInstance().increaseScore(1);
     }
     
 }

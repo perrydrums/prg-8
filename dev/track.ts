@@ -1,12 +1,12 @@
 class Track {
 
-    private readonly _id:number;
-    private readonly _name:string;
-    private readonly _artist:string;
-    private readonly _description:string;
-    private readonly _duration:number;
-    private readonly _bpm:number;
-    private readonly _difficulty:number;
+    private _id:number;
+    private _name:string;
+    private _artist:string;
+    private _description:string;
+    private _duration:number;
+    private _bpm:number;
+    private _difficulty:number;
 
     constructor(id:number, name:string, artist:string, description:string, duration:number, bpm:number, difficulty:number) {
         this._id = id;

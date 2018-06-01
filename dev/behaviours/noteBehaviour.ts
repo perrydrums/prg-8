@@ -3,12 +3,12 @@ interface NoteBehaviour {
     /**
      * The note that contains this behaviour
      */
-    _note:Note;
+    note:Note;
 
     /**
      * True if the note can be played right now
      */
-    _now:boolean;
+    now:boolean;
 
     checkPosition():void;
 
