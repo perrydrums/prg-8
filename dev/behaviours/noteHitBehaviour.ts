@@ -3,8 +3,6 @@ class NoteHitBehaviour implements NoteBehaviour {
     public note:Note;
     public now:boolean = false;
 
-    private _hits:number = 0;
-
     constructor(note:Note) {
         this.note = note;
         window.addEventListener("keydown", () => {this.checkHit(event, DOMHelper.getKeyFromFretId(this.note.fretID))}, false);
@@ -16,13 +14,7 @@ class NoteHitBehaviour implements NoteBehaviour {
     checkPosition():void {
         const y = this.note.y;
         
-        if (y > 600 && y < 900) {
-            this.now = true;
-        }
-        else {
-            this.now = false;
-        }
-
+        this.now = y > 600 && y < 900;
     }
 
     /**
@@ -50,10 +42,8 @@ class NoteHitBehaviour implements NoteBehaviour {
             return;
         }
 
-        this._hits ++;
-
         // Add the small_explosion gif to the background of the note element to indicate a successful hit.
-        this.note.element.style.backgroundImage = 'url(images/dot.png), url("images/small_explosion.gif")'
+        this.note.element.style.backgroundImage = 'url(images/dot.png), url("images/small_explosion.gif")';
 
         this.note.stopNote();
 
