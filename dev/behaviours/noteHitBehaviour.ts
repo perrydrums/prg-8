@@ -52,9 +52,8 @@ class NoteHitBehaviour implements NoteBehaviour {
             DOMHelper.removeNote(this.note);
         }, 200);
 
-        // Increase the score by one.
-        // TODO: Combo's and streak multiplyers
-        Game.getInstance().increaseScore(1);
+        // Increase the score by the notes score method.
+        this.note.registerScore();
     }
     
 }

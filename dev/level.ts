@@ -94,13 +94,26 @@ class Level {
         if (this._sheet.notes.length !== 0) {
             if ((Date.now() - this._startTime) > (this._sheet.notes[0].beat * step)) {
             
-                Game.notes.push(new Note(this._sheet.notes[0].fret));
+                Game.notes.push(this.createNote(this._sheet.notes[0].fret));
     
                 this._sheet.notes.shift();
             }
         }
 
         this.updateScore();
+    }
+
+    /**
+     * Create a new Note based on chance.
+     */
+    private createNote(fret:number):Note {
+        const r = Math.floor(Math.random() * 100);
+        if (r < 90) {
+            return new BasicNote(fret);
+        }
+        else {
+            return new PowerUpNote(fret);
+        }
     }
 
     private updateScore():void {

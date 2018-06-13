@@ -59,7 +59,7 @@ body, html {
     z-index: 10;
 }
 
-.Kick {
+.Note {
     width: 100px; height: 100px;
     background-position: center;
     background-repeat: no-repeat;

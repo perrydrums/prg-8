@@ -1,33 +1,29 @@
-class Note {
+abstract class Note {
     
     /**
      * Specifies how the note should be played
      */
-    private _noteBehaviour : NoteBehaviour;
+    protected _noteBehaviour : NoteBehaviour;
 
-    private _element:HTMLElement;
+    protected _element:HTMLElement;
 
-    private _fretID:number;
+    protected _fretID:number;
 
-    private _fret:HTMLElement;
+    protected _fret:HTMLElement;
 
-    private _y:number = 0;
+    protected _y:number = 0;
 
-    private _speed:number = 10;
+    protected _speed:number = 10;
 
-    private _stop:boolean = false;
+    protected _stop:boolean = false;
 
     constructor(fretID:number) {
         this._noteBehaviour = new NoteHitBehaviour(this);
 
         this._element = document.createElement('div');
         this._fretID = fretID;
-        let e = this._element;
-
-        e.style.backgroundImage = "url('images/dot.png')";
-        e.classList.add('Kick');
-        this._fret = document.getElementById('fret_' + this._fretID);
-        this._fret.appendChild(e);
+        
+        // Element styling should be handled in child class.
     }
 
     /**
@@ -41,7 +37,7 @@ class Note {
         }
         // Remove the note if it's outside of the fret bounds
         else {
-            Game.getInstance().lowerScore(1);
+            Game.getInstance().lowerScore(5);
 
             // Remove the DOMElement and the reference to this instance
             DOMHelper.removeNote(this);
@@ -64,6 +60,17 @@ class Note {
     stopNote():void {
         this._speed = 0;
         this._stop = true;
+    }
+
+    /**
+     * Increase score.
+     */
+    registerScore():void {
+        // Should be handled in the child classes.
+    }
+
+    protected changeBehaviour(behaviour:NoteBehaviour):void {
+        this._noteBehaviour = behaviour;
     }
 
     get element():HTMLElement {
