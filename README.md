@@ -1,6 +1,17 @@
 # Hardcore Hero
 
 ### Perry Janssen 0924208
+Hogeschool Rotterdam CMGT - PRG-08
+
+## Installatieintructies
+
+Volg deze instructies om deze game lokaal te installeren:
+
+1. Clone deze repository.
+2. In de root van deze repo, run `http-server -o` *[1] om het project in de browser te openen.
+3. Navigeer naar het mapje `docs` op de geopende pagina in de browser.
+
+*[1]: Als het commando niet wordt herkend, installeer de [http-server module](https://www.npmjs.com/package/http-server) globaal.
 
 ## Pull Request
 
@@ -14,14 +25,87 @@ Ik heb voor het project van Carin een Peer Review geschreven waarnaar ik kijk of
 
 [Peer Review](https://github.com/carinhansen/typescript-game/issues/2)
 
-## Installeren
+## Singleton
 
-Volg deze instructies om deze game lokaal te installeren:
+Ik gebruik op twee plaatsen een Singleton class: In `Game` en `Selector`. Hiervan zullen er altijd maar 1 instantie mogen zijn. Het maakt het, vooral voor `Game`, ook erg makkelijk properties en methods van de Game class aan te kunnen spreken. Dit wordt in vele classes namelijk gedaan, en zo hoef ik niet de `Game` mee te geven als parameters bij een class.
 
-1. Clone deze repository.
-2. In de root van deze repo, run `http-server -o` *[1] om het project in de browser te openen.
-3. Navigeer naar het mapje `docs` op de geopende pagina in de browser.
+```typescript
+/**
+ * Make the constructor private.
+ */
+private constructor() {
+    this._fpsInterval = 1000 / this._fps;
+    this._then = Date.now();
+    setInterval(() => this.gameLoop(), 1);
+    let selector = Selector.getInstance();
+    selector.show();
+}
 
-*[1]: Als het command niet wordt herkend, installeer de [http-server module](https://www.npmjs.com/package/http-server) globaal.
+/**
+ * There can always only be one Game instance.
+ * 
+ * @returns {Game}
+ */
+public static getInstance() {
+    if (!this._instance) {
+        this._instance = new Game();
+    }
+    return this._instance;
+}
+```
 
+## Polymorfisme
 
+Het gebruik van Polymorfisme kan je terugzien in de `Level` en `Game` classes. Hier worden arrays van `Note` gemaakt terwijl deze met `BasicNote` of `PowerUpNote` worden gevuld. Deze twee classes verschillen enkel qua uiterlijk en puntentelling. Van de `Note` class kan trouwens geen instantie worden gemaakt, deze is abstract.
+
+// Tweede voorbeeld Polymorfisme
+
+*Voorbeeld hoe met kansberekening een `BasicNote` of `PowerUpNote` wordt gemaakt:*
+```typescript
+/**
+ * Create a new Note based on chance.
+ */
+private createNote(fret:number):Note {
+    const r = Math.floor(Math.random() * 100);
+    if (r < 90) {
+        return new BasicNote(fret);
+    }
+    else {
+        return new PowerUpNote(fret);
+    }
+}
+```
+
+## Strategy
+
+Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHoldBehaviour` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. Er wordt ook gekeken of de `Note` op de juiste plaats staat. (Dit is verschillend voor beide behaviours)
+
+```typescript
+interface NoteBehaviour {
+
+    /**
+     * The note that contains this behaviour.
+     */
+    note:Note;
+
+    /**
+     * True if the note can be played right now.
+     */
+    now:boolean;
+
+    /**
+     * Should check if the note can be played at a time.
+     */
+    checkPosition():void;
+
+    /**
+     * Should run when a note is played correctly.
+     */
+    register():void;
+
+}
+```
+
+## Observer
+
+// Voorbeeld van Observer patroon
