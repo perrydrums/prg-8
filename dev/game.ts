@@ -36,7 +36,7 @@ class Game {
     /**
      * There can always only be one Game instance.
      * 
-     * @returns Game
+     * @returns {Game}
      */
     public static getInstance() {
         if (!this._instance) {
@@ -50,12 +50,12 @@ class Game {
      */
     gameLoop() {
         requestAnimationFrame(() => this.gameLoop());
-    
-        // Calculate elepsed time
+
+        // Calculate elapsed time.
         let now = Date.now();
         let elapsed = now - this._then;
      
-        // If enough time has elapsed, draw the next frame
+        // If enough time has elapsed, draw the next frame.
         if (elapsed > this._fpsInterval) {
 
             if (Game.level) {
