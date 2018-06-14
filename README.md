@@ -78,7 +78,7 @@ private createNote(fret:number):Note {
 
 ## Strategy
 
-Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHoldBehaviour` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. Er wordt ook gekeken of de `Note` op de juiste plaats staat. (Dit is verschillend voor beide behaviours)
+Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHoldBehaviour` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. (Dit is verschillend voor beide behaviours)
 
 ```typescript
 interface NoteBehaviour {
@@ -108,4 +108,33 @@ interface NoteBehaviour {
 
 ## Observer
 
-// Voorbeeld van Observer patroon
+Ik gebruik het Observer patroon in `Level` en `Note`, waarbij `Note` de observer is. `Level` geeft aan de observer door wanneer de Note gespeeld kan worden.
+
+*De Subject interface:*
+```typescript
+interface Subject {
+
+    registerObserver(observer:Observer):void;
+
+    removeObserver(observer:Observer):void;
+
+    notifyObservers():void;
+
+}
+```
+
+*In Level:*
+```typescript
+public notifyObservers() {
+    for (let observer of this._observers) {
+        if (observer instanceof Note) {
+            if (observer.y > 600 && observer.y < 900) {
+                observer.now = true;
+            }
+            else {
+                observer.now = false;
+            }
+        }
+    }
+}
+```
