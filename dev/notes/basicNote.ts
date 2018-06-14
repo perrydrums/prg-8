@@ -2,8 +2,8 @@
 
 class BasicNote extends Note {
 
-    constructor(fretID:number) {
-        super(fretID);
+    constructor(fretID:number, level:Subject) {
+        super(fretID, level);
 
         let e = this._element;
 

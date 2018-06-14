@@ -1,4 +1,4 @@
-class Level {
+class Level implements Subject {
 
     private _level:HTMLElement;
 
@@ -15,6 +15,8 @@ class Level {
     private _startTime:number;
 
     private _creator:Creator;
+
+    private _observers:Observer[] = [];
 
     constructor(track:Track, creator:boolean = true) {
         this._track = track;
@@ -88,6 +90,9 @@ class Level {
      * Runs every game tick.
      */
     update() {
+
+        this.notifyObservers();
+
         // Read the notes from the sheet and play them back at the right time.
         const step = (60 / this.track.bpm) * 500;
 
@@ -109,10 +114,42 @@ class Level {
     private createNote(fret:number):Note {
         const r = Math.floor(Math.random() * 100);
         if (r < 90) {
-            return new BasicNote(fret);
+            return new BasicNote(fret, this);
         }
         else {
-            return new PowerUpNote(fret);
+            return new PowerUpNote(fret, this);
+        }
+    }
+
+    /**
+     * Add an observer (probably Note) to the observers array.
+     * 
+     * @param {Observer} observer 
+     */
+    public registerObserver(observer:Observer):void {
+        this._observers.push(observer);
+    }
+
+    /**
+     * Remove an observer of the observers array.
+     * 
+     * @param {Observer} observer 
+     */
+    public removeObserver(observer:Observer):void {
+        const index = this._observers.indexOf(observer);
+        this._observers.splice(index, 1);
+    }
+
+    public notifyObservers() {
+        for (let observer of this._observers) {
+            if (observer instanceof Note) {
+                if (observer.y > 600 && observer.y < 900) {
+                    observer.now = true;
+                }
+                else {
+                    observer.now = false;
+                }
+            }
         }
     }
 

@@ -12,9 +12,7 @@ class NoteHitBehaviour implements NoteBehaviour {
      * Check if the note can be played right now.
      */
     checkPosition():void {
-        const y = this.note.y;
-        
-        this.now = y > 600 && y < 900;
+        this.now = this.note.now;
     }
 
     /**

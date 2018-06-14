@@ -1,14 +1,4 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -44,84 +34,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var Note = (function () {
-    function Note(fretID) {
-        this._y = 0;
-        this._speed = 10;
-        this._stop = false;
-        this._noteBehaviour = new NoteHitBehaviour(this);
-        this._element = document.createElement('div');
-        this._fretID = fretID;
-    }
-    Note.prototype.update = function () {
-        if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
-            this._y += this._speed;
-            this.element.style.transform = "translate(0px, " + this._y + "px)";
-        }
-        else {
-            Game.getInstance().lowerScore(5);
-            DOMHelper.removeNote(this);
-        }
-        this.checkPosition();
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    Note.prototype.checkPosition = function () {
-        this._noteBehaviour.checkPosition();
-    };
-    Note.prototype.stopNote = function () {
-        this._speed = 0;
-        this._stop = true;
-    };
-    Note.prototype.registerScore = function () {
-    };
-    Note.prototype.changeBehaviour = function (behaviour) {
-        this._noteBehaviour = behaviour;
-    };
-    Object.defineProperty(Note.prototype, "element", {
-        get: function () {
-            return this._element;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Note.prototype, "y", {
-        get: function () {
-            return this._y;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Note.prototype, "fretID", {
-        get: function () {
-            return this._fretID;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Note.prototype, "stop", {
-        get: function () {
-            return this._stop;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return Note;
-}());
-var BasicNote = (function (_super) {
-    __extends(BasicNote, _super);
-    function BasicNote(fretID) {
-        var _this = _super.call(this, fretID) || this;
-        var e = _this._element;
-        e.style.backgroundImage = "url('images/dot.png')";
-        e.classList.add('Note');
-        _this._fret = document.getElementById('fret_' + _this._fretID);
-        _this._fret.appendChild(e);
-        return _this;
-    }
-    BasicNote.prototype.registerScore = function () {
-        Game.getInstance().increaseScore(10);
-    };
-    return BasicNote;
-}(Note));
+})();
 var Creator = (function () {
     function Creator(track) {
         var _this = this;
@@ -230,6 +152,7 @@ window.addEventListener("load", function () {
 var Level = (function () {
     function Level(track, creator) {
         if (creator === void 0) { creator = true; }
+        this._observers = [];
         this._track = track;
         this.show();
         if (creator) {
@@ -285,6 +208,7 @@ var Level = (function () {
         });
     };
     Level.prototype.update = function () {
+        this.notifyObservers();
         var step = (60 / this.track.bpm) * 500;
         if (this._sheet.notes.length !== 0) {
             if ((Date.now() - this._startTime) > (this._sheet.notes[0].beat * step)) {
@@ -297,10 +221,30 @@ var Level = (function () {
     Level.prototype.createNote = function (fret) {
         var r = Math.floor(Math.random() * 100);
         if (r < 90) {
-            return new BasicNote(fret);
+            return new BasicNote(fret, this);
         }
         else {
-            return new PowerUpNote(fret);
+            return new PowerUpNote(fret, this);
+        }
+    };
+    Level.prototype.registerObserver = function (observer) {
+        this._observers.push(observer);
+    };
+    Level.prototype.removeObserver = function (observer) {
+        var index = this._observers.indexOf(observer);
+        this._observers.splice(index, 1);
+    };
+    Level.prototype.notifyObservers = function () {
+        for (var _i = 0, _a = this._observers; _i < _a.length; _i++) {
+            var observer = _a[_i];
+            if (observer instanceof Note) {
+                if (observer.y > 600 && observer.y < 900) {
+                    observer.now = true;
+                }
+                else {
+                    observer.now = false;
+                }
+            }
         }
     };
     Level.prototype.updateScore = function () {
@@ -315,22 +259,6 @@ var Level = (function () {
     });
     return Level;
 }());
-var PowerUpNote = (function (_super) {
-    __extends(PowerUpNote, _super);
-    function PowerUpNote(fretID) {
-        var _this = _super.call(this, fretID) || this;
-        var e = _this._element;
-        e.style.backgroundImage = "url('images/special_dot.png')";
-        e.classList.add('Note');
-        _this._fret = document.getElementById('fret_' + _this._fretID);
-        _this._fret.appendChild(e);
-        return _this;
-    }
-    PowerUpNote.prototype.registerScore = function () {
-        Game.getInstance().increaseScore(100);
-    };
-    return PowerUpNote;
-}(Note));
 var Selector = (function () {
     function Selector() {
         this._tracks = [];
@@ -511,8 +439,7 @@ var NoteHitBehaviour = (function () {
         window.addEventListener("keydown", function () { _this.checkHit(event, DOMHelper.getKeyFromFretId(_this.note.fretID)); }, false);
     }
     NoteHitBehaviour.prototype.checkPosition = function () {
-        var y = this.note.y;
-        this.now = y > 600 && y < 900;
+        this.now = this.note.now;
     };
     NoteHitBehaviour.prototype.checkHit = function (e, keycode) {
         if (e instanceof KeyboardEvent) {
@@ -609,4 +536,102 @@ var Fetcher = (function () {
     };
     return Fetcher;
 }());
+var Note = (function () {
+    function Note(fretID, level) {
+        this._y = 0;
+        this._speed = 10;
+        this._stop = false;
+        this.now = false;
+        this._noteBehaviour = new NoteHitBehaviour(this);
+        this.subject = level;
+        level.registerObserver(this);
+        this._element = document.createElement('div');
+        this._fretID = fretID;
+    }
+    Note.prototype.update = function () {
+        if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
+            this._y += this._speed;
+            this.element.style.transform = "translate(0px, " + this._y + "px)";
+        }
+        else {
+            Game.getInstance().lowerScore(5);
+            this.subject.removeObserver(this);
+            DOMHelper.removeNote(this);
+        }
+        this.checkPosition();
+    };
+    Note.prototype.checkPosition = function () {
+        this._noteBehaviour.checkPosition();
+    };
+    Note.prototype.stopNote = function () {
+        this._speed = 0;
+        this._stop = true;
+    };
+    Note.prototype.registerScore = function () {
+    };
+    Note.prototype.changeBehaviour = function (behaviour) {
+        this._noteBehaviour = behaviour;
+    };
+    Object.defineProperty(Note.prototype, "element", {
+        get: function () {
+            return this._element;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Note.prototype, "y", {
+        get: function () {
+            return this._y;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Note.prototype, "fretID", {
+        get: function () {
+            return this._fretID;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Note.prototype, "stop", {
+        get: function () {
+            return this._stop;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return Note;
+}());
+var BasicNote = (function (_super) {
+    __extends(BasicNote, _super);
+    function BasicNote(fretID, level) {
+        var _this = _super.call(this, fretID, level) || this;
+        var e = _this._element;
+        e.style.backgroundImage = "url('images/dot.png')";
+        e.classList.add('Note');
+        _this._fret = document.getElementById('fret_' + _this._fretID);
+        _this._fret.appendChild(e);
+        return _this;
+    }
+    BasicNote.prototype.registerScore = function () {
+        Game.getInstance().increaseScore(10);
+    };
+    return BasicNote;
+}(Note));
+var PowerUpNote = (function (_super) {
+    __extends(PowerUpNote, _super);
+    function PowerUpNote(fretID, level) {
+        var _this = _super.call(this, fretID, level) || this;
+        var e = _this._element;
+        e.style.backgroundImage = "url('images/special_dot.png')";
+        e.classList.add('Note');
+        _this._fret = document.getElementById('fret_' + _this._fretID);
+        _this._fret.appendChild(e);
+        return _this;
+    }
+    PowerUpNote.prototype.registerScore = function () {
+        Game.getInstance().increaseScore(100);
+    };
+    return PowerUpNote;
+}(Note));
 //# sourceMappingURL=main.js.map

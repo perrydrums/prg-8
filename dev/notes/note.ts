@@ -1,4 +1,4 @@
-abstract class Note {
+abstract class Note implements Observer {
     
     /**
      * Specifies how the note should be played
@@ -17,8 +17,14 @@ abstract class Note {
 
     protected _stop:boolean = false;
 
-    constructor(fretID:number) {
+    public now:boolean = false;
+
+    public subject:Subject;
+
+    constructor(fretID:number, level:Subject) {
         this._noteBehaviour = new NoteHitBehaviour(this);
+        this.subject = level;
+        level.registerObserver(this);
 
         this._element = document.createElement('div');
         this._fretID = fretID;
@@ -39,6 +45,8 @@ abstract class Note {
         else {
             Game.getInstance().lowerScore(5);
 
+            // Remove the observer from the subject
+            this.subject.removeObserver(this);
             // Remove the DOMElement and the reference to this instance
             DOMHelper.removeNote(this);
         }
