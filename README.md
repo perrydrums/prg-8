@@ -3,6 +3,9 @@
 ### Perry Janssen 0924208
 Hogeschool Rotterdam CMGT - PRG-08
 
+## Live preview
+[Deze repo op github pages](https://perrydrums.github.io/prg-8)
+
 ## Installatieintructies
 
 Volg deze instructies om deze game lokaal te installeren:
