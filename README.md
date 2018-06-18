@@ -157,3 +157,6 @@ public notifyObservers() {
     }
 }
 ```
+
+## Problemen met deze game
+Deze game vertrouwd heel veel op timing en ritme. Dit is lastig om te doen als de snelheid van de game afhangt van de framerate en de snelheid van de browser. Ik heb het aantal fps naar beneden moeten halen, naar ongeveer 30, om het spel ietswat voorspelbaar te kunnen maken. Toch blijft het lastig aangezien het spel niet helemaal soepel loopt. De Notes worden te vroeg of the laat gemaakt, of vallen niet altijd op dezelfde snelheid. Ook wanneer een Note aanslaat kan er vertraging zijn wat er voor zorgt dat de 'hit' niet geregistreerd wordt... Wat dit misschien kan oplossen is het scheiden van taken naar een 'timing thread' en een 'UI thread', maar ik had daar geen tijd meer voor.
