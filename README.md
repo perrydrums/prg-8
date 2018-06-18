@@ -25,6 +25,14 @@ Ik heb voor het project van Carin een Peer Review geschreven waarnaar ik kijk of
 
 [Peer Review](https://github.com/carinhansen/typescript-game/issues/2)
 
+## Klassendiagram UML
+Hier mijn klassendiagram.
+De DOMHelper en Fetcher class hebben geen relatie met de andere classes omdat deze dienen als Helper classes. Ze bevatten enkel public static functions.
+
+`Note` is een abstracte class en kan geen instantie van worden gemaakt.
+
+![Klassendiagram UML](/uml.png "Klassendiagram")
+
 ## Singleton
 
 Ik gebruik op twee plaatsen een Singleton class: In `Game` en `Selector`. Hiervan zullen er altijd maar 1 instantie mogen zijn. Het maakt het, vooral voor `Game`, ook erg makkelijk properties en methods van de Game class aan te kunnen spreken. Dit wordt in vele classes namelijk gedaan, en zo hoef ik niet de `Game` mee te geven als parameters bij een class.
@@ -58,8 +66,6 @@ public static getInstance() {
 
 Het gebruik van Polymorfisme kan je terugzien in de `Level` en `Game` classes. Hier worden arrays van `Note` gemaakt terwijl deze met `BasicNote` of `PowerUpNote` worden gevuld. Deze twee classes verschillen enkel qua uiterlijk en puntentelling. Van de `Note` class kan trouwens geen instantie worden gemaakt, deze is abstract.
 
-// Tweede voorbeeld Polymorfisme
-
 *Voorbeeld hoe met kansberekening een `BasicNote` of `PowerUpNote` wordt gemaakt:*
 ```typescript
 /**
@@ -76,9 +82,19 @@ private createNote(fret:number):Note {
 }
 ```
 
+Nu kan ik ook makkelijk beide soorten Note classes aanspreken door een array van `Note` te gebruiken.
+
+```typescript
+if (Game.notes) {
+    Game.notes.forEach(note => {
+        note.update();
+    });
+}
+```
+
 ## Strategy
 
-Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHoldBehaviour` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. (Dit is verschillend voor beide behaviours)
+Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHitBehaviourCombi` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. (Dit is verschillend voor beide behaviours) In `NoteHitBehaviourCombo` wordt een combo streak bijgehouden en de hit animatie veranderd.
 
 ```typescript
 interface NoteBehaviour {
