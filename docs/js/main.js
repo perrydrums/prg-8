@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -94,6 +94,7 @@ var Game = (function () {
     function Game() {
         this._fps = 30;
         this._score = 0;
+        this.hits = 0;
         this._fpsInterval = 1000 / this._fps;
         this._then = Date.now();
         this.gameLoop();
@@ -446,6 +447,7 @@ var NoteHitBehaviour = (function () {
             if (this.now && e.keyCode === keycode) {
                 this.register();
                 this.now = false;
+                Game.getInstance().hits++;
             }
         }
     };
@@ -463,6 +465,26 @@ var NoteHitBehaviour = (function () {
     };
     return NoteHitBehaviour;
 }());
+var NoteHitBehaviourCombo = (function (_super) {
+    __extends(NoteHitBehaviourCombo, _super);
+    function NoteHitBehaviourCombo(note) {
+        return _super.call(this, note) || this;
+    }
+    NoteHitBehaviourCombo.prototype.register = function () {
+        var _this = this;
+        if (this.note.stop) {
+            return;
+        }
+        this.note.element.style.backgroundImage = 'url(images/dot.png), url("images/big_explosion.gif")';
+        this.note.stopNote();
+        setTimeout(function () {
+            DOMHelper.removeNote(_this.note);
+        }, 200);
+        this.note.multiplier++;
+        this.note.registerScore();
+    };
+    return NoteHitBehaviourCombo;
+}(NoteHitBehaviour));
 var DOMHelper = (function () {
     function DOMHelper() {
     }
@@ -542,13 +564,19 @@ var Note = (function () {
         this._speed = 10;
         this._stop = false;
         this.now = false;
-        this._noteBehaviour = new NoteHitBehaviour(this);
+        this.multiplier = 1;
         this.subject = level;
         level.registerObserver(this);
         this._element = document.createElement('div');
         this._fretID = fretID;
     }
     Note.prototype.update = function () {
+        if (Game.getInstance().hits > 10) {
+            this._noteBehaviour = new NoteHitBehaviourCombo(this);
+        }
+        else {
+            this._noteBehaviour = new NoteHitBehaviour(this);
+        }
         if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
             this._y += this._speed;
             this.element.style.transform = "translate(0px, " + this._y + "px)";
@@ -557,6 +585,7 @@ var Note = (function () {
             Game.getInstance().lowerScore(5);
             this.subject.removeObserver(this);
             DOMHelper.removeNote(this);
+            Game.getInstance().hits = 0;
         }
         this.checkPosition();
     };
@@ -614,7 +643,7 @@ var BasicNote = (function (_super) {
         return _this;
     }
     BasicNote.prototype.registerScore = function () {
-        Game.getInstance().increaseScore(10);
+        Game.getInstance().increaseScore(10 * this.multiplier);
     };
     return BasicNote;
 }(Note));
@@ -630,7 +659,7 @@ var PowerUpNote = (function (_super) {
         return _this;
     }
     PowerUpNote.prototype.registerScore = function () {
-        Game.getInstance().increaseScore(100);
+        Game.getInstance().increaseScore(100 * this.multiplier);
     };
     return PowerUpNote;
 }(Note));

@@ -21,8 +21,9 @@ abstract class Note implements Observer {
 
     public subject:Subject;
 
+    public multiplier:number = 1;
+
     constructor(fretID:number, level:Subject) {
-        this._noteBehaviour = new NoteHitBehaviour(this);
         this.subject = level;
         level.registerObserver(this);
 
@@ -36,6 +37,14 @@ abstract class Note implements Observer {
      * This runs every game tick
      */
     update():void {
+
+        if (Game.getInstance().hits > 10) {
+            this._noteBehaviour = new NoteHitBehaviourCombo(this);
+        }
+        else {
+            this._noteBehaviour = new NoteHitBehaviour(this);
+        }
+
         // Move the note down
         if (this._y < (this._fret.getBoundingClientRect().height - this.element.getBoundingClientRect().height)) {
             this._y += this._speed;
@@ -49,6 +58,7 @@ abstract class Note implements Observer {
             this.subject.removeObserver(this);
             // Remove the DOMElement and the reference to this instance
             DOMHelper.removeNote(this);
+            Game.getInstance().hits = 0;
         }
 
         this.checkPosition();

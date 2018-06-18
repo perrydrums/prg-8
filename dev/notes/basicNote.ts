@@ -17,7 +17,7 @@ class BasicNote extends Note {
      * Add 10 points to score
      */
     registerScore():void {
-        Game.getInstance().increaseScore(10);
+        Game.getInstance().increaseScore(10 * this.multiplier);
     }
 
 }

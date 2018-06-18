@@ -27,6 +27,7 @@ class NoteHitBehaviour implements NoteBehaviour {
             if (this.now && e.keyCode === keycode) {
                 this.register();
                 this.now = false;
+                Game.getInstance().hits ++;
             }
         }
     }

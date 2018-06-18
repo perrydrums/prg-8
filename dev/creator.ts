@@ -21,7 +21,7 @@ class Creator {
      * 
      * @param {Event} e 
      */
-    checkKeyPressEvents(e:Event) {
+    private checkKeyPressEvents(e:Event) {
         if (e instanceof KeyboardEvent) {
             switch (e.keyCode) {
                 case 90: // z

@@ -22,6 +22,8 @@ class Game {
 
     public static level:Level;
 
+    public hits:number = 0;
+
     /**
      * Make the constructor private.
      */

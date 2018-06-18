@@ -14,7 +14,7 @@ class PowerUpNote extends Note {
     }
 
     registerScore() {
-        Game.getInstance().increaseScore(100);
+        Game.getInstance().increaseScore(100 * this.multiplier);
     }
 
 }
