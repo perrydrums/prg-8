@@ -3,6 +3,12 @@
 ### Perry Janssen 0924208
 Hogeschool Rotterdam CMGT - PRG-08
 
+Hardcore Hero is een op ritme gebaseerde game. Je speelt het met de toetsen: Z C B M. Druk op deze toetsen wanneer de balletjes in het rood komen. 
+
+Het maken van deze game was een hele erge uitdaging en dat kwam voornamelijk door dat het gehele spel vertrouwd op perfecte timing. (Dit is nog zeker niet perfect, zie 'Problemen met deze game' onderaan de pagina.) Eerst moest ik het aantal FPS van mijn game instellen op 30. De methode die ik gebruik zorgt ervoor dat in de gameloop de functies pas worden uitgevoerd als 1/30e seconde voorbij is. Zo kan ik de timing een stuk voorspelbaarder maken.
+
+Om de levels te maken heb ik een `Creator` class gemaakt. Als deze is geactiveerd kan ik een track inladen en op de maat van de muziek zelf de Z C B M toetsen aanslaan waaneer ik op die tijd een noot wil. De timing hiervan wordt dan omgeschreven naar halve maten en opgeslagen in een JSON bestand. Dit geeft de mogelijk om later een creator te maken waarbij spelers hun eigen levels kunnen delen door middel van het JSON bestandje en de track.
+
 ## Live preview
 [Deze repo op github pages](https://perrydrums.github.io/prg-8)
 
