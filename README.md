@@ -103,7 +103,7 @@ if (Game.notes) {
 
 ## Strategy
 
-Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHitBehaviourCombi` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. (Dit is verschillend voor beide behaviours) In `NoteHitBehaviourCombo` wordt een combo streak bijgehouden en de hit animatie veranderd.
+Ik gebruik het Strategy patroon in mijn 'behaviours': een interface `NoteBehaviour` die door `NoteHitBehaviour` en `NoteHitBehaviourCombo` worden geimplementeerd. Deze vertellen aan de `Note` hoe het moet worden 'gespeeld' door de player. (Dit is verschillend voor beide behaviours) In `NoteHitBehaviourCombo` wordt een combo streak bijgehouden en de hit animatie veranderd.
 
 ```typescript
 interface NoteBehaviour {
